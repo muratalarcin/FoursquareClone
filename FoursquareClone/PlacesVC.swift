@@ -25,7 +25,8 @@ class PlacesVC: UIViewController {
     }
     
     @objc func addButtonClicked() {
-        //seque
+        
+        performSegue(withIdentifier: "toAddPlaceVC", sender: nil)
         
         
     }
