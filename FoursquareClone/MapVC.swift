@@ -7,14 +7,13 @@
 
 import UIKit
 import MapKit
+import Parse
 
 class MapVC: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet weak var mapView: MKMapView!
     
     var logationManager = CLLocationManager()
-    var choosenLatitude = ""
-    var choosenLongitude = ""
     
     
 
@@ -53,8 +52,8 @@ class MapVC: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
             
             self.mapView.addAnnotation(annotation)
             
-            self.choosenLatitude = String(coordinates.latitude)
-            self.choosenLongitude = String(coordinates.longitude)
+            PlaceModel.sharedInstance.choosenLatitude = String(coordinates.latitude)
+            PlaceModel.sharedInstance.choosenLongitude = String(coordinates.longitude)
             
         }
         
@@ -79,6 +78,29 @@ class MapVC: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     
 
     @objc func saveButtonClicked() {
+        let placeModel = PlaceModel.sharedInstance
+        
+        let object = PFObject(className: "Places")
+        object["name"] = placeModel.placeName
+        object["type"] = placeModel.placeType
+        object["atmosphere"] = placeModel.placeAtmosphere
+        object["latitude"] = placeModel.choosenLatitude
+        object["longitude"] = placeModel.choosenLongitude
+        if let imageData = placeModel.placeImage.jpegData(compressionQuality: 0.5) {
+            object["image"] = PFFileObject(name: "image.jpg", data: imageData)
+        }
+        
+        object.saveInBackground { success, error in
+            if (error != nil) {
+                let alert = UIAlertController(title: "Error", message: error?.localizedDescription, preferredStyle: UIAlertController.Style.alert)
+                let okButton = UIAlertAction(title: "OK", style: UIAlertAction.Style.default)
+                alert.addAction(okButton)
+                self.present(alert, animated: true)
+                
+            } else {
+                self.performSegue(withIdentifier: "fromMapVCtoPlacesVC", sender: nil)
+            }
+        }
         
     }
     
